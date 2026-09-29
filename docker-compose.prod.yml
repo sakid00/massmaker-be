@@ -1,8 +1,10 @@
-# VPS B: API + Postgres + Caddy. Host ports are loopback-only except 80/443.
+# VPS2: API + Postgres + Caddy (80/443). Frontend is a separate compose on network massmaker.
+#   docker network create massmaker   # once, before first up
 #   docker compose -f docker-compose.prod.yml up --build -d
 #
-# Point DNS A/AAAA for api.$MASSMAKER_DOMAIN at this VPS.
+# Point DNS A/AAAA for $MASSMAKER_DOMAIN and api.$MASSMAKER_DOMAIN at this VPS.
 # Set ENMASSE_INTERNAL_URL=https://internal.api.enmasse.id in .env.
+# Do not start a second Caddy from massmaker-fe.
 
 services:
   postgres:
@@ -48,6 +50,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "443:443/udp"
     environment:
       ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
       MASSMAKER_DOMAIN: ${MASSMAKER_DOMAIN:-massmaker.id}
@@ -60,6 +63,7 @@ services:
     restart: unless-stopped
     networks:
       - app
+      - massmaker
 
 volumes:
   postgres_data:
@@ -68,3 +72,6 @@ volumes:
 
 networks:
   app:
+  massmaker:
+    name: massmaker
+    external: true
