@@ -1,0 +1,6 @@
+.env
+data/
+*.exe
+*.test
+massmaker-be
+/bin/

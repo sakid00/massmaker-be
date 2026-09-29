@@ -1,0 +1,27 @@
+# Public catalogue host. Admin and swagger stay off the public host;
+# reach them via SSH tunnel to 127.0.0.1:8080.
+
+{
+	email {$ACME_EMAIL}
+}
+
+api.{$MASSMAKER_DOMAIN} {
+	encode gzip zstd
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+		Content-Security-Policy "frame-ancestors 'none'"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+	@notLocalhost not host localhost 127.0.0.1
+	header @notLocalhost Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+	@private path /v1/admin /v1/admin/* /swagger /swagger/*
+	handle @private {
+		respond 404
+	}
+	handle {
+		reverse_proxy api:8080
+	}
+}

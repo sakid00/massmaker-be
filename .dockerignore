@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+data/
+*.exe
+*.test
+*.md
+.cursor
