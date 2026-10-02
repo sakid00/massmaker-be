@@ -47,31 +47,37 @@ func (h *MeMakerHandler) Patch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var body struct {
-		Capabilities     []string                 `json:"capabilities"`
-		MOQ              *service.MOQ             `json:"moq"`
-		LeadTimeEstimate *string                  `json:"leadTimeEstimate"`
-		PriceMinIDR      *int32                   `json:"priceMinIdr"`
-		PriceMaxIDR      *int32                   `json:"priceMaxIdr"`
-		PriceNote        *string                  `json:"priceNote"`
-		HoursOpen        *string                  `json:"hoursOpen"`
-		HoursClose       *string                  `json:"hoursClose"`
-		HoursDays        *[]string                `json:"hoursDays"`
-		Portfolio        *[]service.PortfolioItem `json:"portfolio"`
+		Capabilities             []string                 `json:"capabilities"`
+		MOQ                      *service.MOQ             `json:"moq"`
+		LeadTimeEstimate         *string                  `json:"leadTimeEstimate"`
+		PriceMinIDR              *int32                   `json:"priceMinIdr"`
+		PriceMaxIDR              *int32                   `json:"priceMaxIdr"`
+		PriceNote                *string                  `json:"priceNote"`
+		HoursOpen                *string                  `json:"hoursOpen"`
+		HoursClose               *string                  `json:"hoursClose"`
+		HoursDays                *[]string                `json:"hoursDays"`
+		Portfolio                *[]service.PortfolioItem `json:"portfolio"`
+		JicafCollaboratedBefore  *bool                    `json:"jicafCollaboratedBefore"`
+		JicafCollaborationArtist *string                  `json:"jicafCollaborationArtist"`
+		JicafCollaborationYear   *int32                   `json:"jicafCollaborationYear"`
 	}
 	if err := decode(r, &body); err != nil {
 		writeError(w, domain.NewAppError(http.StatusBadRequest, "validation", "invalid json"))
 		return
 	}
 	in := service.PatchMakerInput{
-		Capabilities:     body.Capabilities,
-		MOQ:              body.MOQ,
-		LeadTimeEstimate: body.LeadTimeEstimate,
-		PriceMinIDR:      body.PriceMinIDR,
-		PriceMaxIDR:      body.PriceMaxIDR,
-		PriceNote:        body.PriceNote,
-		HoursOpen:        body.HoursOpen,
-		HoursClose:       body.HoursClose,
-		Portfolio:        body.Portfolio,
+		Capabilities:             body.Capabilities,
+		MOQ:                      body.MOQ,
+		LeadTimeEstimate:         body.LeadTimeEstimate,
+		PriceMinIDR:              body.PriceMinIDR,
+		PriceMaxIDR:              body.PriceMaxIDR,
+		PriceNote:                body.PriceNote,
+		HoursOpen:                body.HoursOpen,
+		HoursClose:               body.HoursClose,
+		Portfolio:                body.Portfolio,
+		JicafCollaboratedBefore:  body.JicafCollaboratedBefore,
+		JicafCollaborationArtist: body.JicafCollaborationArtist,
+		JicafCollaborationYear:   body.JicafCollaborationYear,
 	}
 	if body.HoursDays != nil {
 		in.HoursDays = *body.HoursDays

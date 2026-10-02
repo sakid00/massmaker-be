@@ -142,32 +142,38 @@ SELECT
     m.hours_open,
     m.hours_close,
     m.hours_days,
-    m.service_area
+    m.service_area,
+    m.jicaf_collaborated_before,
+    m.jicaf_collaboration_artist,
+    m.jicaf_collaboration_year
 FROM makers m
 WHERE m.id = $1
 `
 
 type GetMakerRow struct {
-	ID                uuid.UUID         `json:"id"`
-	Name              string            `json:"name"`
-	City              string            `json:"city"`
-	PublicationStatus PublicationStatus `json:"publication_status"`
-	VerificationDate  *time.Time        `json:"verification_date"`
-	MoqQuantity       *int32            `json:"moq_quantity"`
-	MoqBasis          NullMoqBasis      `json:"moq_basis"`
-	MoqBasisNote      *string           `json:"moq_basis_note"`
-	LeadTimeEstimate  *string           `json:"lead_time_estimate"`
-	PriceMinIdr       *int32            `json:"price_min_idr"`
-	PriceMaxIdr       *int32            `json:"price_max_idr"`
-	PriceNote         *string           `json:"price_note"`
-	Conditions        *string           `json:"conditions"`
-	IsDemoFixture     bool              `json:"is_demo_fixture"`
-	EnmasseVendorID   *uuid.UUID        `json:"enmasse_vendor_id"`
-	EnmasseUserID     *uuid.UUID        `json:"enmasse_user_id"`
-	HoursOpen         *string           `json:"hours_open"`
-	HoursClose        *string           `json:"hours_close"`
-	HoursDays         []string          `json:"hours_days"`
-	ServiceArea       *string           `json:"service_area"`
+	ID                       uuid.UUID         `json:"id"`
+	Name                     string            `json:"name"`
+	City                     string            `json:"city"`
+	PublicationStatus        PublicationStatus `json:"publication_status"`
+	VerificationDate         *time.Time        `json:"verification_date"`
+	MoqQuantity              *int32            `json:"moq_quantity"`
+	MoqBasis                 NullMoqBasis      `json:"moq_basis"`
+	MoqBasisNote             *string           `json:"moq_basis_note"`
+	LeadTimeEstimate         *string           `json:"lead_time_estimate"`
+	PriceMinIdr              *int32            `json:"price_min_idr"`
+	PriceMaxIdr              *int32            `json:"price_max_idr"`
+	PriceNote                *string           `json:"price_note"`
+	Conditions               *string           `json:"conditions"`
+	IsDemoFixture            bool              `json:"is_demo_fixture"`
+	EnmasseVendorID          *uuid.UUID        `json:"enmasse_vendor_id"`
+	EnmasseUserID            *uuid.UUID        `json:"enmasse_user_id"`
+	HoursOpen                *string           `json:"hours_open"`
+	HoursClose               *string           `json:"hours_close"`
+	HoursDays                []string          `json:"hours_days"`
+	ServiceArea              *string           `json:"service_area"`
+	JicafCollaboratedBefore  *bool             `json:"jicaf_collaborated_before"`
+	JicafCollaborationArtist *string           `json:"jicaf_collaboration_artist"`
+	JicafCollaborationYear   *int32            `json:"jicaf_collaboration_year"`
 }
 
 func (q *Queries) GetMaker(ctx context.Context, id uuid.UUID) (GetMakerRow, error) {
@@ -194,6 +200,9 @@ func (q *Queries) GetMaker(ctx context.Context, id uuid.UUID) (GetMakerRow, erro
 		&i.HoursClose,
 		&i.HoursDays,
 		&i.ServiceArea,
+		&i.JicafCollaboratedBefore,
+		&i.JicafCollaborationArtist,
+		&i.JicafCollaborationYear,
 	)
 	return i, err
 }
@@ -219,32 +228,38 @@ SELECT
     m.hours_open,
     m.hours_close,
     m.hours_days,
-    m.service_area
+    m.service_area,
+    m.jicaf_collaborated_before,
+    m.jicaf_collaboration_artist,
+    m.jicaf_collaboration_year
 FROM makers m
 WHERE m.enmasse_vendor_id = $1
 `
 
 type GetMakerByEnmasseVendorRow struct {
-	ID                uuid.UUID         `json:"id"`
-	Name              string            `json:"name"`
-	City              string            `json:"city"`
-	PublicationStatus PublicationStatus `json:"publication_status"`
-	VerificationDate  *time.Time        `json:"verification_date"`
-	MoqQuantity       *int32            `json:"moq_quantity"`
-	MoqBasis          NullMoqBasis      `json:"moq_basis"`
-	MoqBasisNote      *string           `json:"moq_basis_note"`
-	LeadTimeEstimate  *string           `json:"lead_time_estimate"`
-	PriceMinIdr       *int32            `json:"price_min_idr"`
-	PriceMaxIdr       *int32            `json:"price_max_idr"`
-	PriceNote         *string           `json:"price_note"`
-	Conditions        *string           `json:"conditions"`
-	IsDemoFixture     bool              `json:"is_demo_fixture"`
-	EnmasseVendorID   *uuid.UUID        `json:"enmasse_vendor_id"`
-	EnmasseUserID     *uuid.UUID        `json:"enmasse_user_id"`
-	HoursOpen         *string           `json:"hours_open"`
-	HoursClose        *string           `json:"hours_close"`
-	HoursDays         []string          `json:"hours_days"`
-	ServiceArea       *string           `json:"service_area"`
+	ID                       uuid.UUID         `json:"id"`
+	Name                     string            `json:"name"`
+	City                     string            `json:"city"`
+	PublicationStatus        PublicationStatus `json:"publication_status"`
+	VerificationDate         *time.Time        `json:"verification_date"`
+	MoqQuantity              *int32            `json:"moq_quantity"`
+	MoqBasis                 NullMoqBasis      `json:"moq_basis"`
+	MoqBasisNote             *string           `json:"moq_basis_note"`
+	LeadTimeEstimate         *string           `json:"lead_time_estimate"`
+	PriceMinIdr              *int32            `json:"price_min_idr"`
+	PriceMaxIdr              *int32            `json:"price_max_idr"`
+	PriceNote                *string           `json:"price_note"`
+	Conditions               *string           `json:"conditions"`
+	IsDemoFixture            bool              `json:"is_demo_fixture"`
+	EnmasseVendorID          *uuid.UUID        `json:"enmasse_vendor_id"`
+	EnmasseUserID            *uuid.UUID        `json:"enmasse_user_id"`
+	HoursOpen                *string           `json:"hours_open"`
+	HoursClose               *string           `json:"hours_close"`
+	HoursDays                []string          `json:"hours_days"`
+	ServiceArea              *string           `json:"service_area"`
+	JicafCollaboratedBefore  *bool             `json:"jicaf_collaborated_before"`
+	JicafCollaborationArtist *string           `json:"jicaf_collaboration_artist"`
+	JicafCollaborationYear   *int32            `json:"jicaf_collaboration_year"`
 }
 
 func (q *Queries) GetMakerByEnmasseVendor(ctx context.Context, enmasseVendorID *uuid.UUID) (GetMakerByEnmasseVendorRow, error) {
@@ -271,6 +286,9 @@ func (q *Queries) GetMakerByEnmasseVendor(ctx context.Context, enmasseVendorID *
 		&i.HoursClose,
 		&i.HoursDays,
 		&i.ServiceArea,
+		&i.JicafCollaboratedBefore,
+		&i.JicafCollaborationArtist,
+		&i.JicafCollaborationYear,
 	)
 	return i, err
 }
@@ -944,22 +962,28 @@ SET hours_open = $2,
     moq_basis = $9,
     moq_basis_note = $10,
     lead_time_estimate = $11,
+    jicaf_collaborated_before = $12,
+    jicaf_collaboration_artist = $13,
+    jicaf_collaboration_year = $14,
     updated_at = NOW()
 WHERE id = $1
 `
 
 type UpdateMakerOverlayParams struct {
-	ID               uuid.UUID    `json:"id"`
-	HoursOpen        *string      `json:"hours_open"`
-	HoursClose       *string      `json:"hours_close"`
-	HoursDays        []string     `json:"hours_days"`
-	PriceMinIdr      *int32       `json:"price_min_idr"`
-	PriceMaxIdr      *int32       `json:"price_max_idr"`
-	PriceNote        *string      `json:"price_note"`
-	MoqQuantity      *int32       `json:"moq_quantity"`
-	MoqBasis         NullMoqBasis `json:"moq_basis"`
-	MoqBasisNote     *string      `json:"moq_basis_note"`
-	LeadTimeEstimate *string      `json:"lead_time_estimate"`
+	ID                       uuid.UUID    `json:"id"`
+	HoursOpen                *string      `json:"hours_open"`
+	HoursClose               *string      `json:"hours_close"`
+	HoursDays                []string     `json:"hours_days"`
+	PriceMinIdr              *int32       `json:"price_min_idr"`
+	PriceMaxIdr              *int32       `json:"price_max_idr"`
+	PriceNote                *string      `json:"price_note"`
+	MoqQuantity              *int32       `json:"moq_quantity"`
+	MoqBasis                 NullMoqBasis `json:"moq_basis"`
+	MoqBasisNote             *string      `json:"moq_basis_note"`
+	LeadTimeEstimate         *string      `json:"lead_time_estimate"`
+	JicafCollaboratedBefore  *bool        `json:"jicaf_collaborated_before"`
+	JicafCollaborationArtist *string      `json:"jicaf_collaboration_artist"`
+	JicafCollaborationYear   *int32       `json:"jicaf_collaboration_year"`
 }
 
 func (q *Queries) UpdateMakerOverlay(ctx context.Context, arg UpdateMakerOverlayParams) error {
@@ -975,6 +999,9 @@ func (q *Queries) UpdateMakerOverlay(ctx context.Context, arg UpdateMakerOverlay
 		arg.MoqBasis,
 		arg.MoqBasisNote,
 		arg.LeadTimeEstimate,
+		arg.JicafCollaboratedBefore,
+		arg.JicafCollaborationArtist,
+		arg.JicafCollaborationYear,
 	)
 	return err
 }

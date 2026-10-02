@@ -147,7 +147,10 @@ SELECT
     m.hours_open,
     m.hours_close,
     m.hours_days,
-    m.service_area
+    m.service_area,
+    m.jicaf_collaborated_before,
+    m.jicaf_collaboration_artist,
+    m.jicaf_collaboration_year
 FROM makers m
 WHERE m.id = $1;
 
@@ -172,7 +175,10 @@ SELECT
     m.hours_open,
     m.hours_close,
     m.hours_days,
-    m.service_area
+    m.service_area,
+    m.jicaf_collaborated_before,
+    m.jicaf_collaboration_artist,
+    m.jicaf_collaboration_year
 FROM makers m
 WHERE m.enmasse_vendor_id = $1;
 
@@ -188,6 +194,9 @@ SET hours_open = $2,
     moq_basis = $9,
     moq_basis_note = $10,
     lead_time_estimate = $11,
+    jicaf_collaborated_before = $12,
+    jicaf_collaboration_artist = $13,
+    jicaf_collaboration_year = $14,
     updated_at = NOW()
 WHERE id = $1;
 

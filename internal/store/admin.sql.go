@@ -65,7 +65,7 @@ INSERT INTO makers (
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
 )
-RETURNING id, name, city, publication_status, verification_date, moq_quantity, moq_basis, moq_basis_note, lead_time_estimate, price_min_idr, price_max_idr, price_note, conditions, is_demo_fixture, enmasse_vendor_id, created_at, updated_at, hours_open, hours_close, service_area, hours_days, enmasse_user_id
+RETURNING id, name, city, publication_status, verification_date, moq_quantity, moq_basis, moq_basis_note, lead_time_estimate, price_min_idr, price_max_idr, price_note, conditions, is_demo_fixture, enmasse_vendor_id, created_at, updated_at, hours_open, hours_close, service_area, hours_days, enmasse_user_id, jicaf_collaborated_before, jicaf_collaboration_artist, jicaf_collaboration_year
 `
 
 type InsertMakerParams struct {
@@ -122,6 +122,9 @@ func (q *Queries) InsertMaker(ctx context.Context, arg InsertMakerParams) (Maker
 		&i.ServiceArea,
 		&i.HoursDays,
 		&i.EnmasseUserID,
+		&i.JicafCollaboratedBefore,
+		&i.JicafCollaborationArtist,
+		&i.JicafCollaborationYear,
 	)
 	return i, err
 }

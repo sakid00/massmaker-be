@@ -386,28 +386,31 @@ type Event struct {
 }
 
 type Maker struct {
-	ID                uuid.UUID         `json:"id"`
-	Name              string            `json:"name"`
-	City              string            `json:"city"`
-	PublicationStatus PublicationStatus `json:"publication_status"`
-	VerificationDate  *time.Time        `json:"verification_date"`
-	MoqQuantity       *int32            `json:"moq_quantity"`
-	MoqBasis          NullMoqBasis      `json:"moq_basis"`
-	MoqBasisNote      *string           `json:"moq_basis_note"`
-	LeadTimeEstimate  *string           `json:"lead_time_estimate"`
-	PriceMinIdr       *int32            `json:"price_min_idr"`
-	PriceMaxIdr       *int32            `json:"price_max_idr"`
-	PriceNote         *string           `json:"price_note"`
-	Conditions        *string           `json:"conditions"`
-	IsDemoFixture     bool              `json:"is_demo_fixture"`
-	EnmasseVendorID   *uuid.UUID        `json:"enmasse_vendor_id"`
-	CreatedAt         time.Time         `json:"created_at"`
-	UpdatedAt         time.Time         `json:"updated_at"`
-	HoursOpen         *string           `json:"hours_open"`
-	HoursClose        *string           `json:"hours_close"`
-	ServiceArea       *string           `json:"service_area"`
-	HoursDays         []string          `json:"hours_days"`
-	EnmasseUserID     *uuid.UUID        `json:"enmasse_user_id"`
+	ID                       uuid.UUID         `json:"id"`
+	Name                     string            `json:"name"`
+	City                     string            `json:"city"`
+	PublicationStatus        PublicationStatus `json:"publication_status"`
+	VerificationDate         *time.Time        `json:"verification_date"`
+	MoqQuantity              *int32            `json:"moq_quantity"`
+	MoqBasis                 NullMoqBasis      `json:"moq_basis"`
+	MoqBasisNote             *string           `json:"moq_basis_note"`
+	LeadTimeEstimate         *string           `json:"lead_time_estimate"`
+	PriceMinIdr              *int32            `json:"price_min_idr"`
+	PriceMaxIdr              *int32            `json:"price_max_idr"`
+	PriceNote                *string           `json:"price_note"`
+	Conditions               *string           `json:"conditions"`
+	IsDemoFixture            bool              `json:"is_demo_fixture"`
+	EnmasseVendorID          *uuid.UUID        `json:"enmasse_vendor_id"`
+	CreatedAt                time.Time         `json:"created_at"`
+	UpdatedAt                time.Time         `json:"updated_at"`
+	HoursOpen                *string           `json:"hours_open"`
+	HoursClose               *string           `json:"hours_close"`
+	ServiceArea              *string           `json:"service_area"`
+	HoursDays                []string          `json:"hours_days"`
+	EnmasseUserID            *uuid.UUID        `json:"enmasse_user_id"`
+	JicafCollaboratedBefore  *bool             `json:"jicaf_collaborated_before"`
+	JicafCollaborationArtist *string           `json:"jicaf_collaboration_artist"`
+	JicafCollaborationYear   *int32            `json:"jicaf_collaboration_year"`
 }
 
 type MakerCapability struct {

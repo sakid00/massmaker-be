@@ -39,19 +39,22 @@ type PortfolioItem struct {
 }
 
 type MakerOverlay struct {
-	ID               string          `json:"id,omitempty"`
-	Capabilities     []string        `json:"capabilities"`
-	MOQ              *MOQ            `json:"moq"`
-	LeadTimeEstimate *string         `json:"leadTimeEstimate"`
-	PriceMinIDR      *int32          `json:"priceMinIdr"`
-	PriceMaxIDR      *int32          `json:"priceMaxIdr"`
-	PriceNote        *string         `json:"priceNote"`
-	HoursOpen        string          `json:"hoursOpen"`
-	HoursClose       string          `json:"hoursClose"`
-	HoursDays        []string        `json:"hoursDays"`
-	Portfolio        []PortfolioItem `json:"portfolio"`
-	ReadyForReview   bool            `json:"readyForReview"`
-	Missing          []string        `json:"missing"`
+	ID                       string          `json:"id,omitempty"`
+	Capabilities             []string        `json:"capabilities"`
+	MOQ                      *MOQ            `json:"moq"`
+	LeadTimeEstimate         *string         `json:"leadTimeEstimate"`
+	PriceMinIDR              *int32          `json:"priceMinIdr"`
+	PriceMaxIDR              *int32          `json:"priceMaxIdr"`
+	PriceNote                *string         `json:"priceNote"`
+	HoursOpen                string          `json:"hoursOpen"`
+	HoursClose               string          `json:"hoursClose"`
+	HoursDays                []string        `json:"hoursDays"`
+	Portfolio                []PortfolioItem `json:"portfolio"`
+	JicafCollaboratedBefore  *bool           `json:"jicafCollaboratedBefore"`
+	JicafCollaborationArtist *string         `json:"jicafCollaborationArtist"`
+	JicafCollaborationYear   *int32          `json:"jicafCollaborationYear"`
+	ReadyForReview           bool            `json:"readyForReview"`
+	Missing                  []string        `json:"missing"`
 }
 
 type Onboarding struct {
@@ -64,17 +67,20 @@ type Onboarding struct {
 }
 
 type PatchMakerInput struct {
-	Capabilities     []string
-	MOQ              *MOQ
-	LeadTimeEstimate *string
-	PriceMinIDR      *int32
-	PriceMaxIDR      *int32
-	PriceNote        *string
-	HoursOpen        *string
-	HoursClose       *string
-	HoursDays        []string
-	HoursDaysSet     bool
-	Portfolio        *[]PortfolioItem
+	Capabilities             []string
+	MOQ                      *MOQ
+	LeadTimeEstimate         *string
+	PriceMinIDR              *int32
+	PriceMaxIDR              *int32
+	PriceNote                *string
+	HoursOpen                *string
+	HoursClose               *string
+	HoursDays                []string
+	HoursDaysSet             bool
+	Portfolio                *[]PortfolioItem
+	JicafCollaboratedBefore  *bool
+	JicafCollaborationArtist *string
+	JicafCollaborationYear   *int32
 }
 
 func (s *MakerSelf) Onboarding(ctx context.Context, authorization string) (*Onboarding, error) {
@@ -179,18 +185,41 @@ func (s *MakerSelf) Patch(ctx context.Context, authorization, userID string, in 
 		lead = strPtr(strings.TrimSpace(*in.LeadTimeEstimate))
 	}
 
+	jicafBefore := maker.JicafCollaboratedBefore
+	jicafArtist := maker.JicafCollaborationArtist
+	jicafYear := maker.JicafCollaborationYear
+	if in.JicafCollaboratedBefore != nil || in.JicafCollaborationArtist != nil || in.JicafCollaborationYear != nil {
+		if in.JicafCollaboratedBefore != nil {
+			jicafBefore = in.JicafCollaboratedBefore
+		}
+		if in.JicafCollaborationArtist != nil {
+			jicafArtist = in.JicafCollaborationArtist
+		}
+		if in.JicafCollaborationYear != nil {
+			jicafYear = in.JicafCollaborationYear
+		}
+		var err error
+		jicafBefore, jicafArtist, jicafYear, err = domain.NormalizeJicafCollaboration(jicafBefore, jicafArtist, jicafYear)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if err := s.db.Queries.UpdateMakerOverlay(ctx, store.UpdateMakerOverlayParams{
-		ID:               maker.ID,
-		HoursOpen:        hoursOpen,
-		HoursClose:       hoursClose,
-		HoursDays:        hoursDays,
-		PriceMinIdr:      min,
-		PriceMaxIdr:      max,
-		PriceNote:        note,
-		MoqQuantity:      moqQty,
-		MoqBasis:         moqBasisVal,
-		MoqBasisNote:     moqNote,
-		LeadTimeEstimate: lead,
+		ID:                       maker.ID,
+		HoursOpen:                hoursOpen,
+		HoursClose:               hoursClose,
+		HoursDays:                hoursDays,
+		PriceMinIdr:              min,
+		PriceMaxIdr:              max,
+		PriceNote:                note,
+		MoqQuantity:              moqQty,
+		MoqBasis:                 moqBasisVal,
+		MoqBasisNote:             moqNote,
+		LeadTimeEstimate:         lead,
+		JicafCollaboratedBefore:  jicafBefore,
+		JicafCollaborationArtist: jicafArtist,
+		JicafCollaborationYear:   jicafYear,
 	}); err != nil {
 		return nil, fmt.Errorf("maker overlay: update: %w", err)
 	}
@@ -271,22 +300,25 @@ func (s *MakerSelf) ensureMaker(ctx context.Context, profile *enmasse.MeProfile,
 		return store.GetMakerByEnmasseVendorRow{}, err
 	}
 	return store.GetMakerByEnmasseVendorRow{
-		ID:               created.ID,
-		Name:             created.Name,
-		City:             created.City,
-		MoqQuantity:      created.MoqQuantity,
-		MoqBasis:         created.MoqBasis,
-		MoqBasisNote:     created.MoqBasisNote,
-		LeadTimeEstimate: created.LeadTimeEstimate,
-		PriceMinIdr:      created.PriceMinIdr,
-		PriceMaxIdr:      created.PriceMaxIdr,
-		PriceNote:        created.PriceNote,
-		HoursOpen:        created.HoursOpen,
-		HoursClose:       created.HoursClose,
-		HoursDays:        created.HoursDays,
-		ServiceArea:      created.ServiceArea,
-		EnmasseVendorID:  created.EnmasseVendorID,
-		EnmasseUserID:    created.EnmasseUserID,
+		ID:                       created.ID,
+		Name:                     created.Name,
+		City:                     created.City,
+		MoqQuantity:              created.MoqQuantity,
+		MoqBasis:                 created.MoqBasis,
+		MoqBasisNote:             created.MoqBasisNote,
+		LeadTimeEstimate:         created.LeadTimeEstimate,
+		PriceMinIdr:              created.PriceMinIdr,
+		PriceMaxIdr:              created.PriceMaxIdr,
+		PriceNote:                created.PriceNote,
+		HoursOpen:                created.HoursOpen,
+		HoursClose:               created.HoursClose,
+		HoursDays:                created.HoursDays,
+		ServiceArea:              created.ServiceArea,
+		EnmasseVendorID:          created.EnmasseVendorID,
+		EnmasseUserID:            created.EnmasseUserID,
+		JicafCollaboratedBefore:  created.JicafCollaboratedBefore,
+		JicafCollaborationArtist: created.JicafCollaborationArtist,
+		JicafCollaborationYear:   created.JicafCollaborationYear,
 	}, nil
 }
 
@@ -344,6 +376,9 @@ func (s *MakerSelf) overlayForVendor(ctx context.Context, profile *enmasse.MePro
 	if out.HoursDays == nil {
 		out.HoursDays = []string{}
 	}
+	out.JicafCollaboratedBefore = maker.JicafCollaboratedBefore
+	out.JicafCollaborationArtist = maker.JicafCollaborationArtist
+	out.JicafCollaborationYear = maker.JicafCollaborationYear
 
 	caps, err := s.db.Queries.ListMakerCapabilities(ctx, []uuid.UUID{maker.ID})
 	if err != nil {
