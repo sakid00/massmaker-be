@@ -171,7 +171,7 @@ type GetMakerRow struct {
 	HoursClose               *string           `json:"hours_close"`
 	HoursDays                []string          `json:"hours_days"`
 	ServiceArea              *string           `json:"service_area"`
-	JicafCollaboratedBefore  *bool             `json:"jicaf_collaborated_before"`
+	JicafCollaboratedBefore  bool              `json:"jicaf_collaborated_before"`
 	JicafCollaborationArtist *string           `json:"jicaf_collaboration_artist"`
 	JicafCollaborationYear   *int32            `json:"jicaf_collaboration_year"`
 }
@@ -257,7 +257,7 @@ type GetMakerByEnmasseVendorRow struct {
 	HoursClose               *string           `json:"hours_close"`
 	HoursDays                []string          `json:"hours_days"`
 	ServiceArea              *string           `json:"service_area"`
-	JicafCollaboratedBefore  *bool             `json:"jicaf_collaborated_before"`
+	JicafCollaboratedBefore  bool              `json:"jicaf_collaborated_before"`
 	JicafCollaborationArtist *string           `json:"jicaf_collaboration_artist"`
 	JicafCollaborationYear   *int32            `json:"jicaf_collaboration_year"`
 }
@@ -981,7 +981,7 @@ type UpdateMakerOverlayParams struct {
 	MoqBasis                 NullMoqBasis `json:"moq_basis"`
 	MoqBasisNote             *string      `json:"moq_basis_note"`
 	LeadTimeEstimate         *string      `json:"lead_time_estimate"`
-	JicafCollaboratedBefore  *bool        `json:"jicaf_collaborated_before"`
+	JicafCollaboratedBefore  bool         `json:"jicaf_collaborated_before"`
 	JicafCollaborationArtist *string      `json:"jicaf_collaboration_artist"`
 	JicafCollaborationYear   *int32       `json:"jicaf_collaboration_year"`
 }

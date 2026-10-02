@@ -408,7 +408,7 @@ type Maker struct {
 	ServiceArea              *string           `json:"service_area"`
 	HoursDays                []string          `json:"hours_days"`
 	EnmasseUserID            *uuid.UUID        `json:"enmasse_user_id"`
-	JicafCollaboratedBefore  *bool             `json:"jicaf_collaborated_before"`
+	JicafCollaboratedBefore  bool              `json:"jicaf_collaborated_before"`
 	JicafCollaborationArtist *string           `json:"jicaf_collaboration_artist"`
 	JicafCollaborationYear   *int32            `json:"jicaf_collaboration_year"`
 }

@@ -1,6 +1,6 @@
 -- +goose Up
 ALTER TABLE makers
-    ADD COLUMN jicaf_collaborated_before BOOLEAN,
+    ADD COLUMN jicaf_collaborated_before BOOLEAN NOT NULL DEFAULT FALSE,
     ADD COLUMN jicaf_collaboration_artist TEXT,
     ADD COLUMN jicaf_collaboration_year INT;
 

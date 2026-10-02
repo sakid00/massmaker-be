@@ -50,7 +50,7 @@ type MakerOverlay struct {
 	HoursClose               string          `json:"hoursClose"`
 	HoursDays                []string        `json:"hoursDays"`
 	Portfolio                []PortfolioItem `json:"portfolio"`
-	JicafCollaboratedBefore  *bool           `json:"jicafCollaboratedBefore"`
+	JicafCollaboratedBefore  bool            `json:"jicafCollaboratedBefore"`
 	JicafCollaborationArtist *string         `json:"jicafCollaborationArtist"`
 	JicafCollaborationYear   *int32          `json:"jicafCollaborationYear"`
 	ReadyForReview           bool            `json:"readyForReview"`
@@ -190,7 +190,7 @@ func (s *MakerSelf) Patch(ctx context.Context, authorization, userID string, in 
 	jicafYear := maker.JicafCollaborationYear
 	if in.JicafCollaboratedBefore != nil || in.JicafCollaborationArtist != nil || in.JicafCollaborationYear != nil {
 		if in.JicafCollaboratedBefore != nil {
-			jicafBefore = in.JicafCollaboratedBefore
+			jicafBefore = *in.JicafCollaboratedBefore
 		}
 		if in.JicafCollaborationArtist != nil {
 			jicafArtist = in.JicafCollaborationArtist
