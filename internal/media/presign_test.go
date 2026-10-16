@@ -69,7 +69,7 @@ func TestConfigComplete(t *testing.T) {
 
 func TestValidateContentLength(t *testing.T) {
 	t.Parallel()
-	const twoMiB = 2 * 1024 * 1024
+	const fiveMiB = 5 * 1024 * 1024
 	cases := []struct {
 		n    int64
 		fail bool
@@ -77,8 +77,8 @@ func TestValidateContentLength(t *testing.T) {
 		{n: 0, fail: true},
 		{n: -1, fail: true},
 		{n: 1, fail: false},
-		{n: twoMiB, fail: false},
-		{n: twoMiB + 1, fail: true},
+		{n: fiveMiB, fail: false},
+		{n: fiveMiB + 1, fail: true},
 	}
 	for _, tc := range cases {
 		err := ValidateContentLength(tc.n)

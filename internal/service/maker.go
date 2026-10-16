@@ -21,7 +21,10 @@ const (
 	missingHours      = "hours"
 	missingMOQ        = "moq"
 	missingLeadTime   = "lead_time"
-	maxPortfolioItems = 20
+	maxPortfolioWorks      = 3
+	maxPortfolioImages     = 5
+	maxPortfolioTitleLen   = 80
+	maxPortfolioDescLen    = 500
 )
 
 type MakerSelf struct {
@@ -33,9 +36,14 @@ func NewMakerSelf(db *store.DB, em *enmasse.Client) *MakerSelf {
 	return &MakerSelf{db: db, em: em}
 }
 
-type PortfolioItem struct {
+type PortfolioImage struct {
 	URL string `json:"url"`
-	Alt string `json:"alt"`
+}
+
+type PortfolioItem struct {
+	Title       string           `json:"title"`
+	Description string           `json:"description"`
+	Images      []PortfolioImage `json:"images"`
 }
 
 type MakerOverlay struct {
@@ -237,24 +245,33 @@ func (s *MakerSelf) Patch(ctx context.Context, authorization, userID string, in 
 		}
 	}
 	if in.Portfolio != nil {
-		if len(*in.Portfolio) > maxPortfolioItems {
-			return nil, domain.NewAppError(400, "validation", "at most 20 portfolio items")
+		works, err := normalizePortfolioWorks(*in.Portfolio)
+		if err != nil {
+			return nil, err
 		}
-		if err := s.db.Queries.DeleteMakerMedia(ctx, maker.ID); err != nil {
-			return nil, fmt.Errorf("maker overlay: media: %w", err)
+		if err := s.db.Queries.DeleteMakerPortfolioWorks(ctx, maker.ID); err != nil {
+			return nil, fmt.Errorf("maker overlay: works: %w", err)
 		}
-		for i, item := range *in.Portfolio {
-			url := strings.TrimSpace(item.URL)
-			if url == "" {
-				continue
+		for i, work := range works {
+			inserted, err := s.db.Queries.InsertMakerPortfolioWork(ctx, store.InsertMakerPortfolioWorkParams{
+				MakerID:     maker.ID,
+				Title:       work.Title,
+				Description: work.Description,
+				SortOrder:   int32(i),
+			})
+			if err != nil {
+				return nil, fmt.Errorf("maker overlay: work insert: %w", err)
 			}
-			if err := s.db.Queries.InsertMakerMedia(ctx, store.InsertMakerMediaParams{
-				MakerID:   maker.ID,
-				Url:       url,
-				Alt:       strings.TrimSpace(item.Alt),
-				SortOrder: int32(i),
-			}); err != nil {
-				return nil, fmt.Errorf("maker overlay: media insert: %w", err)
+			for j, img := range work.Images {
+				if err := s.db.Queries.InsertMakerMedia(ctx, store.InsertMakerMediaParams{
+					MakerID:   maker.ID,
+					WorkID:    inserted.ID,
+					Url:       img.URL,
+					Alt:       "",
+					SortOrder: int32(j),
+				}); err != nil {
+					return nil, fmt.Errorf("maker overlay: media insert: %w", err)
+				}
 			}
 		}
 	}
@@ -387,12 +404,28 @@ func (s *MakerSelf) overlayForVendor(ctx context.Context, profile *enmasse.MePro
 	for _, c := range caps {
 		out.Capabilities = append(out.Capabilities, c.CategorySlug)
 	}
+	works, err := s.db.Queries.ListMakerPortfolioWorks(ctx, maker.ID)
+	if err != nil {
+		return nil, err
+	}
 	media, err := s.db.Queries.ListMakerMedia(ctx, maker.ID)
 	if err != nil {
 		return nil, err
 	}
+	imagesByWork := map[uuid.UUID][]PortfolioImage{}
 	for _, m := range media {
-		out.Portfolio = append(out.Portfolio, PortfolioItem{URL: m.Url, Alt: m.Alt})
+		imagesByWork[m.WorkID] = append(imagesByWork[m.WorkID], PortfolioImage{URL: m.Url})
+	}
+	for _, w := range works {
+		imgs := imagesByWork[w.ID]
+		if imgs == nil {
+			imgs = []PortfolioImage{}
+		}
+		out.Portfolio = append(out.Portfolio, PortfolioItem{
+			Title:       w.Title,
+			Description: w.Description,
+			Images:      imgs,
+		})
 	}
 	out.Missing = overlayMissing(
 		maker.PriceMinIdr,
@@ -410,6 +443,43 @@ func (s *MakerSelf) overlayForVendor(ctx context.Context, profile *enmasse.MePro
 	out.ReadyForReview = len(out.Missing) == 0
 	if out.Missing == nil {
 		out.Missing = []string{}
+	}
+	return out, nil
+}
+
+func normalizePortfolioWorks(items []PortfolioItem) ([]PortfolioItem, error) {
+	if len(items) > maxPortfolioWorks {
+		return nil, domain.NewAppError(400, "validation", "at most 3 portfolio works")
+	}
+	out := make([]PortfolioItem, 0, len(items))
+	for _, item := range items {
+		title := strings.TrimSpace(item.Title)
+		desc := strings.TrimSpace(item.Description)
+		if len([]rune(title)) > maxPortfolioTitleLen {
+			return nil, domain.NewAppError(400, "validation", "portfolio title too long")
+		}
+		if len([]rune(desc)) > maxPortfolioDescLen {
+			return nil, domain.NewAppError(400, "validation", "portfolio description too long")
+		}
+		images := make([]PortfolioImage, 0, len(item.Images))
+		for _, img := range item.Images {
+			url := strings.TrimSpace(img.URL)
+			if url == "" {
+				continue
+			}
+			images = append(images, PortfolioImage{URL: url})
+		}
+		if len(images) == 0 {
+			return nil, domain.NewAppError(400, "validation", "each portfolio work needs at least one image")
+		}
+		if len(images) > maxPortfolioImages {
+			return nil, domain.NewAppError(400, "validation", "at most 5 images per portfolio work")
+		}
+		out = append(out, PortfolioItem{
+			Title:       title,
+			Description: desc,
+			Images:      images,
+		})
 	}
 	return out, nil
 }

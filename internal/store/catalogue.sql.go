@@ -26,12 +26,12 @@ func (q *Queries) CountPublishedMakers(ctx context.Context) (int64, error) {
 	return column_1, err
 }
 
-const deleteMakerMedia = `-- name: DeleteMakerMedia :exec
-DELETE FROM maker_media WHERE maker_id = $1
+const deleteMakerPortfolioWorks = `-- name: DeleteMakerPortfolioWorks :exec
+DELETE FROM maker_portfolio_works WHERE maker_id = $1
 `
 
-func (q *Queries) DeleteMakerMedia(ctx context.Context, makerID uuid.UUID) error {
-	_, err := q.db.Exec(ctx, deleteMakerMedia, makerID)
+func (q *Queries) DeleteMakerPortfolioWorks(ctx context.Context, makerID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteMakerPortfolioWorks, makerID)
 	return err
 }
 
@@ -408,12 +408,13 @@ func (q *Queries) InsertCategoryRow(ctx context.Context, arg InsertCategoryRowPa
 }
 
 const insertMakerMedia = `-- name: InsertMakerMedia :exec
-INSERT INTO maker_media (maker_id, url, alt, sort_order)
-VALUES ($1, $2, $3, $4)
+INSERT INTO maker_media (maker_id, work_id, url, alt, sort_order)
+VALUES ($1, $2, $3, $4, $5)
 `
 
 type InsertMakerMediaParams struct {
 	MakerID   uuid.UUID `json:"maker_id"`
+	WorkID    uuid.UUID `json:"work_id"`
 	Url       string    `json:"url"`
 	Alt       string    `json:"alt"`
 	SortOrder int32     `json:"sort_order"`
@@ -422,11 +423,43 @@ type InsertMakerMediaParams struct {
 func (q *Queries) InsertMakerMedia(ctx context.Context, arg InsertMakerMediaParams) error {
 	_, err := q.db.Exec(ctx, insertMakerMedia,
 		arg.MakerID,
+		arg.WorkID,
 		arg.Url,
 		arg.Alt,
 		arg.SortOrder,
 	)
 	return err
+}
+
+const insertMakerPortfolioWork = `-- name: InsertMakerPortfolioWork :one
+INSERT INTO maker_portfolio_works (maker_id, title, description, sort_order)
+VALUES ($1, $2, $3, $4)
+RETURNING id, maker_id, title, description, sort_order
+`
+
+type InsertMakerPortfolioWorkParams struct {
+	MakerID     uuid.UUID `json:"maker_id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	SortOrder   int32     `json:"sort_order"`
+}
+
+func (q *Queries) InsertMakerPortfolioWork(ctx context.Context, arg InsertMakerPortfolioWorkParams) (MakerPortfolioWork, error) {
+	row := q.db.QueryRow(ctx, insertMakerPortfolioWork,
+		arg.MakerID,
+		arg.Title,
+		arg.Description,
+		arg.SortOrder,
+	)
+	var i MakerPortfolioWork
+	err := row.Scan(
+		&i.ID,
+		&i.MakerID,
+		&i.Title,
+		&i.Description,
+		&i.SortOrder,
+	)
+	return i, err
 }
 
 const insertSynonym = `-- name: InsertSynonym :exec
@@ -741,26 +774,113 @@ func (q *Queries) ListMakerDraftCategoryGroups(ctx context.Context, proposedByMa
 }
 
 const listMakerMedia = `-- name: ListMakerMedia :many
-SELECT id, maker_id, url, alt, sort_order
-FROM maker_media
-WHERE maker_id = $1
-ORDER BY sort_order, id
+SELECT m.id, m.maker_id, m.work_id, m.url, m.alt, m.sort_order
+FROM maker_media m
+JOIN maker_portfolio_works w ON w.id = m.work_id
+WHERE m.maker_id = $1
+ORDER BY w.sort_order, m.sort_order, m.id
 `
 
-func (q *Queries) ListMakerMedia(ctx context.Context, makerID uuid.UUID) ([]MakerMedium, error) {
+type ListMakerMediaRow struct {
+	ID        uuid.UUID `json:"id"`
+	MakerID   uuid.UUID `json:"maker_id"`
+	WorkID    uuid.UUID `json:"work_id"`
+	Url       string    `json:"url"`
+	Alt       string    `json:"alt"`
+	SortOrder int32     `json:"sort_order"`
+}
+
+func (q *Queries) ListMakerMedia(ctx context.Context, makerID uuid.UUID) ([]ListMakerMediaRow, error) {
 	rows, err := q.db.Query(ctx, listMakerMedia, makerID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []MakerMedium{}
+	items := []ListMakerMediaRow{}
 	for rows.Next() {
-		var i MakerMedium
+		var i ListMakerMediaRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.MakerID,
+			&i.WorkID,
 			&i.Url,
 			&i.Alt,
+			&i.SortOrder,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMakerMediaByWork = `-- name: ListMakerMediaByWork :many
+SELECT id, maker_id, work_id, url, alt, sort_order
+FROM maker_media
+WHERE work_id = $1
+ORDER BY sort_order, id
+`
+
+type ListMakerMediaByWorkRow struct {
+	ID        uuid.UUID `json:"id"`
+	MakerID   uuid.UUID `json:"maker_id"`
+	WorkID    uuid.UUID `json:"work_id"`
+	Url       string    `json:"url"`
+	Alt       string    `json:"alt"`
+	SortOrder int32     `json:"sort_order"`
+}
+
+func (q *Queries) ListMakerMediaByWork(ctx context.Context, workID uuid.UUID) ([]ListMakerMediaByWorkRow, error) {
+	rows, err := q.db.Query(ctx, listMakerMediaByWork, workID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListMakerMediaByWorkRow{}
+	for rows.Next() {
+		var i ListMakerMediaByWorkRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.MakerID,
+			&i.WorkID,
+			&i.Url,
+			&i.Alt,
+			&i.SortOrder,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMakerPortfolioWorks = `-- name: ListMakerPortfolioWorks :many
+SELECT id, maker_id, title, description, sort_order
+FROM maker_portfolio_works
+WHERE maker_id = $1
+ORDER BY sort_order, id
+`
+
+func (q *Queries) ListMakerPortfolioWorks(ctx context.Context, makerID uuid.UUID) ([]MakerPortfolioWork, error) {
+	rows, err := q.db.Query(ctx, listMakerPortfolioWorks, makerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MakerPortfolioWork{}
+	for rows.Next() {
+		var i MakerPortfolioWork
+		if err := rows.Scan(
+			&i.ID,
+			&i.MakerID,
+			&i.Title,
+			&i.Description,
 			&i.SortOrder,
 		); err != nil {
 			return nil, err

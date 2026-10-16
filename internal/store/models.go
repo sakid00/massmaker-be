@@ -433,6 +433,15 @@ type MakerMedium struct {
 	Url       string    `json:"url"`
 	Alt       string    `json:"alt"`
 	SortOrder int32     `json:"sort_order"`
+	WorkID    uuid.UUID `json:"work_id"`
+}
+
+type MakerPortfolioWork struct {
+	ID          uuid.UUID `json:"id"`
+	MakerID     uuid.UUID `json:"maker_id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	SortOrder   int32     `json:"sort_order"`
 }
 
 type Order struct {

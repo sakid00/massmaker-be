@@ -207,18 +207,36 @@ SET name = $2,
     updated_at = NOW()
 WHERE id = $1;
 
--- name: ListMakerMedia :many
-SELECT id, maker_id, url, alt, sort_order
-FROM maker_media
+-- name: ListMakerPortfolioWorks :many
+SELECT id, maker_id, title, description, sort_order
+FROM maker_portfolio_works
 WHERE maker_id = $1
 ORDER BY sort_order, id;
 
--- name: DeleteMakerMedia :exec
-DELETE FROM maker_media WHERE maker_id = $1;
+-- name: ListMakerMedia :many
+SELECT m.id, m.maker_id, m.work_id, m.url, m.alt, m.sort_order
+FROM maker_media m
+JOIN maker_portfolio_works w ON w.id = m.work_id
+WHERE m.maker_id = $1
+ORDER BY w.sort_order, m.sort_order, m.id;
+
+-- name: ListMakerMediaByWork :many
+SELECT id, maker_id, work_id, url, alt, sort_order
+FROM maker_media
+WHERE work_id = $1
+ORDER BY sort_order, id;
+
+-- name: DeleteMakerPortfolioWorks :exec
+DELETE FROM maker_portfolio_works WHERE maker_id = $1;
+
+-- name: InsertMakerPortfolioWork :one
+INSERT INTO maker_portfolio_works (maker_id, title, description, sort_order)
+VALUES ($1, $2, $3, $4)
+RETURNING id, maker_id, title, description, sort_order;
 
 -- name: InsertMakerMedia :exec
-INSERT INTO maker_media (maker_id, url, alt, sort_order)
-VALUES ($1, $2, $3, $4);
+INSERT INTO maker_media (maker_id, work_id, url, alt, sort_order)
+VALUES ($1, $2, $3, $4, $5);
 
 -- name: GetMakerContact :one
 SELECT id, maker_id, channel, e164_digits, publish_permitted, permission_at

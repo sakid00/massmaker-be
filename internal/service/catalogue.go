@@ -259,6 +259,11 @@ func (s *Catalogue) Maker(ctx context.Context, id uuid.UUID) (*MakerDetail, *Mak
 		Badges:              []any{},
 		Contact:             nil,
 	}
+	if images, err := s.flattenedMakerImages(ctx, id); err != nil {
+		return nil, nil, 0, err
+	} else {
+		detail.Images = images
+	}
 	detail.RecommendationEmpty = len(detail.Recommendations) == 0
 	return detail, nil, http.StatusOK, nil
 }
@@ -296,6 +301,17 @@ func (s *Catalogue) cards(ctx context.Context, rows []store.ListPublishedMakersR
 			capMap[c.MakerID] = append(capMap[c.MakerID], c)
 		}
 	}
+	primaryByMaker := map[uuid.UUID]*Media{}
+	for _, id := range ids {
+		images, err := s.flattenedMakerImages(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		if len(images) > 0 {
+			img := images[0]
+			primaryByMaker[id] = &img
+		}
+	}
 	now := time.Now()
 	out := make([]MakerCard, 0, len(rows))
 	for _, r := range rows {
@@ -320,8 +336,20 @@ func (s *Catalogue) cards(ctx context.Context, rows []store.ListPublishedMakersR
 			PriceRange:          toPrice(r.PriceMinIdr, r.PriceMaxIdr, r.PriceNote),
 			VerificationDate:    vdate,
 			NeedsReconfirmation: domain.NeedsReconfirmation(vdate, now.Year(), int(now.Month()), now.Day()),
-			PrimaryImage:        nil,
+			PrimaryImage:        primaryByMaker[r.ID],
 		})
+	}
+	return out, nil
+}
+
+func (s *Catalogue) flattenedMakerImages(ctx context.Context, makerID uuid.UUID) ([]Media, error) {
+	rows, err := s.db.Queries.ListMakerMedia(ctx, makerID)
+	if err != nil {
+		return nil, fmt.Errorf("maker media: %w", err)
+	}
+	out := make([]Media, 0, len(rows))
+	for _, m := range rows {
+		out = append(out, Media{URL: m.Url, Alt: m.Alt})
 	}
 	return out, nil
 }

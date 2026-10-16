@@ -18,7 +18,7 @@ import (
 
 const (
 	presignTTL           = 2 * time.Minute
-	MaxObjectBytes       = 2 * 1024 * 1024
+	MaxObjectBytes       = 5 * 1024 * 1024
 	MaxInquiryImageBytes = 5 * 1024 * 1024
 	MaxInquiryPDFBytes   = 10 * 1024 * 1024
 )
