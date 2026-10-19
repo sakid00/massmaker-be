@@ -11,7 +11,6 @@ import (
 const (
 	TypAccess  = "access"
 	TypService = "service"
-	TypStaff   = "staff"
 
 	AudEnmasse   = "enmasse"
 	AudMassmaker = "massmaker"
@@ -60,32 +59,4 @@ func MintService(secret string, ttl time.Duration) (string, error) {
 		Typ: TypService,
 	})
 	return tok.SignedString([]byte(secret))
-}
-
-func MintStaff(secret, email string, ttl time.Duration) (string, error) {
-	now := time.Now()
-	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": email,
-		"typ": TypStaff,
-		"iat": now.Unix(),
-		"exp": now.Add(ttl).Unix(),
-	})
-	return tok.SignedString([]byte(secret))
-}
-
-func ParseStaff(secret, token string) error {
-	parsed, err := jwt.Parse(token, func(t *jwt.Token) (any, error) {
-		if t.Method != jwt.SigningMethodHS256 {
-			return nil, domain.ErrUnauthorized
-		}
-		return []byte(secret), nil
-	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
-	if err != nil || !parsed.Valid {
-		return domain.ErrUnauthorized
-	}
-	claims, ok := parsed.Claims.(jwt.MapClaims)
-	if !ok || claims["typ"] != TypStaff {
-		return domain.ErrUnauthorized
-	}
-	return nil
 }

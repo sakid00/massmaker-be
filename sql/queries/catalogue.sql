@@ -45,28 +45,6 @@ INSERT INTO categories (slug, label_id, shortcut_order, group_slug, publication_
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
--- name: SetCategoryPublication :exec
-UPDATE categories
-SET publication_status = $2
-WHERE slug = $1;
-
--- name: SetCategoryGroupPublication :exec
-UPDATE category_groups
-SET publication_status = $2
-WHERE slug = $1;
-
--- name: ListDraftCategories :many
-SELECT slug, label_id, shortcut_order, group_slug, publication_status, source, proposed_by_maker_id
-FROM categories
-WHERE publication_status = 'draft'
-ORDER BY slug;
-
--- name: ListDraftCategoryGroups :many
-SELECT slug, label_id, shortcut_order, publication_status, source, proposed_by_maker_id, created_at
-FROM category_groups
-WHERE publication_status = 'draft'
-ORDER BY created_at DESC;
-
 -- name: ListMakerDraftCategories :many
 SELECT slug, label_id, shortcut_order, group_slug, publication_status
 FROM categories
@@ -78,11 +56,6 @@ SELECT slug, label_id, shortcut_order, publication_status
 FROM category_groups
 WHERE proposed_by_maker_id = $1
 ORDER BY slug;
-
--- name: InsertSynonym :exec
-INSERT INTO category_synonyms (category_slug, synonym)
-VALUES ($1, $2)
-ON CONFLICT (synonym) DO NOTHING;
 
 -- name: CountPublishedMakers :one
 SELECT count(*)::bigint

@@ -57,11 +57,6 @@ func main() {
 	sqlDB.Close()
 
 	em := enmasse.New(cfg.EnmasseURL, cfg.JWTServiceSecret)
-	adminSvc := service.NewAdmin(db, cfg, em)
-	if err := adminSvc.Bootstrap(ctx); err != nil {
-		slog.Error("staff bootstrap", "err", err)
-		os.Exit(1)
-	}
 
 	cat := service.NewCatalogue(db, em)
 	events := service.NewEvents(db)
@@ -80,7 +75,7 @@ func main() {
 	}
 
 	orders := service.NewOrders(db, em, r2)
-	handler := apphttp.NewRouter(cat, events, adminSvc, em, self, consents, orders, apphttp.RouterOptions{
+	handler := apphttp.NewRouter(cat, events, em, self, consents, orders, apphttp.RouterOptions{
 		CORSOrigins:     cfg.CORSOrigins,
 		JWTAccessSecret: cfg.JWTAccessSecret,
 		JWTIssuer:       cfg.JWTIssuer,

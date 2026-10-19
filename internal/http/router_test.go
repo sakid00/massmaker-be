@@ -8,7 +8,7 @@ import (
 
 func TestHealthAlwaysMounted(t *testing.T) {
 	t.Parallel()
-	h := NewRouter(nil, nil, nil, nil, nil, nil, nil, RouterOptions{})
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{})
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/health", nil))
 	if rec.Code != http.StatusOK {
@@ -18,7 +18,7 @@ func TestHealthAlwaysMounted(t *testing.T) {
 
 func TestIdentityUnavailableWithoutEnmasse(t *testing.T) {
 	t.Parallel()
-	h := NewRouter(nil, nil, nil, nil, nil, nil, nil, RouterOptions{})
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{})
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/v1/auth/email/status", nil)
 	h.ServeHTTP(rec, req)
@@ -29,7 +29,7 @@ func TestIdentityUnavailableWithoutEnmasse(t *testing.T) {
 
 func TestInternalNotProxied(t *testing.T) {
 	t.Parallel()
-	h := NewRouter(nil, nil, nil, nil, nil, nil, nil, RouterOptions{})
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{})
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/v1/internal/profile-status/x", nil))
 	if rec.Code != http.StatusNotFound {
@@ -39,7 +39,7 @@ func TestInternalNotProxied(t *testing.T) {
 
 func TestEventsInvalidBearerIs401(t *testing.T) {
 	t.Parallel()
-	h := NewRouter(nil, nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/v1/events", nil)
 	req.Header.Set("Authorization", "Bearer not-a-jwt")
@@ -51,7 +51,7 @@ func TestEventsInvalidBearerIs401(t *testing.T) {
 
 func TestCategoryProposalsRequireAuth(t *testing.T) {
 	t.Parallel()
-	h := NewRouter(nil, nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/v1/me/category-proposals", nil))
 	if rec.Code != http.StatusUnauthorized {
@@ -61,7 +61,7 @@ func TestCategoryProposalsRequireAuth(t *testing.T) {
 
 func TestMeVendorsRequiresAuth(t *testing.T) {
 	t.Parallel()
-	h := NewRouter(nil, nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/v1/me/vendors", nil))
 	if rec.Code != http.StatusUnauthorized {
@@ -71,7 +71,7 @@ func TestMeVendorsRequiresAuth(t *testing.T) {
 
 func TestMeConsentsRequiresAuth(t *testing.T) {
 	t.Parallel()
-	h := NewRouter(nil, nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/v1/me/consents", nil))
 	if rec.Code != http.StatusUnauthorized {
@@ -81,7 +81,7 @@ func TestMeConsentsRequiresAuth(t *testing.T) {
 
 func TestMeOrdersRequiresAuth(t *testing.T) {
 	t.Parallel()
-	h := NewRouter(nil, nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/v1/me/orders", nil))
 	if rec.Code != http.StatusUnauthorized {
@@ -91,7 +91,7 @@ func TestMeOrdersRequiresAuth(t *testing.T) {
 
 func TestConsentsUnavailableWithoutService(t *testing.T) {
 	t.Parallel()
-	h := NewRouter(nil, nil, nil, nil, nil, nil, nil, RouterOptions{})
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{})
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/v1/consents", nil)
 	h.ServeHTTP(rec, req)

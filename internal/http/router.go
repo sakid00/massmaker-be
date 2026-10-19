@@ -22,7 +22,7 @@ type RouterOptions struct {
 	Media           *media.Presigner
 }
 
-func NewRouter(cat *service.Catalogue, events *service.Events, admin *service.Admin, em *enmasse.Client, self *service.MakerSelf, consents *service.Consents, orders *service.Orders, opts RouterOptions) http.Handler {
+func NewRouter(cat *service.Catalogue, events *service.Events, em *enmasse.Client, self *service.MakerSelf, consents *service.Consents, orders *service.Orders, opts RouterOptions) http.Handler {
 	r := chi.NewRouter()
 	r.Use(chiMiddleware.RequestID)
 	r.Use(chiMiddleware.RealIP)
@@ -31,7 +31,6 @@ func NewRouter(cat *service.Catalogue, events *service.Events, admin *service.Ad
 	r.Use(mw.CORS(opts.CORSOrigins))
 
 	pub := handlers.NewPublicHandler(cat, events)
-	adm := handlers.NewAdminHandler(admin)
 	id := handlers.NewIdentityHandler(em)
 	meMaker := handlers.NewMeMakerHandler(self)
 	mediaH := handlers.NewMediaHandler(opts.Media)
@@ -74,24 +73,6 @@ func NewRouter(cat *service.Catalogue, events *service.Events, admin *service.Ad
 		r.With(mw.HumanAuth(opts.JWTAccessSecret, opts.JWTIssuer)).Get("/me/orders", ord.List)
 		r.With(mw.HumanAuth(opts.JWTAccessSecret, opts.JWTIssuer)).Get("/me/orders/{id}", ord.Get)
 		r.With(mw.HumanAuth(opts.JWTAccessSecret, opts.JWTIssuer)).Patch("/me/orders/{id}", ord.Patch)
-
-		r.Route("/admin", func(r chi.Router) {
-			r.With(httprate.LimitByIP(5, time.Minute)).Post("/login", adm.Login)
-			r.Group(func(r chi.Router) {
-				r.Use(mw.StaffAuth(admin.ParseStaff))
-				r.Get("/makers", adm.ListMakers)
-				r.Post("/makers", adm.CreateMaker)
-				r.Post("/makers/{id}/publish", adm.Publish)
-				r.Post("/makers/{id}/withdraw", adm.Withdraw)
-				r.Put("/makers/{id}/contact", adm.PutContact)
-				r.Post("/makers/{id}/contact/consent", adm.Consent)
-				r.Get("/taxonomy/drafts", adm.ListTaxonomyDrafts)
-				r.Post("/category-groups/{slug}/publish", adm.PublishCategoryGroup)
-				r.Post("/category-groups/{slug}/withdraw", adm.WithdrawCategoryGroup)
-				r.Post("/categories/{slug}/publish", adm.PublishCategory)
-				r.Post("/categories/{slug}/withdraw", adm.WithdrawCategory)
-			})
-		})
 	})
 
 	return r

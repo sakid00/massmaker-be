@@ -510,11 +510,3 @@ type Session struct {
 	CreatedAt     time.Time  `json:"created_at"`
 	LastFlushAt   time.Time  `json:"last_flush_at"`
 }
-
-type StaffUser struct {
-	ID           uuid.UUID `json:"id"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"password_hash"`
-	Role         string    `json:"role"`
-	CreatedAt    time.Time `json:"created_at"`
-}

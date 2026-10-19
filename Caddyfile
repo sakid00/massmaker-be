@@ -1,6 +1,5 @@
 # One Caddy on VPS2. Apex is the Next app (massmaker-fe service "fe").
-# API stays on the api subdomain. Admin and swagger stay off the public host;
-# reach them via SSH tunnel to 127.0.0.1:8080.
+# API stays on the api subdomain. Swagger stays off the public host.
 
 {
 	email {$ACME_EMAIL}
@@ -33,7 +32,7 @@ api.{$MASSMAKER_DOMAIN} {
 	@notLocalhost not host localhost 127.0.0.1
 	header @notLocalhost Strict-Transport-Security "max-age=31536000; includeSubDomains"
 
-	@private path /v1/admin /v1/admin/* /swagger /swagger/*
+	@private path /swagger /swagger/*
 	handle @private {
 		respond 404
 	}

@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
@@ -21,11 +20,6 @@ type Config struct {
 	JWTIssuer        string `env:"JWT_ISSUER" envDefault:"https://api.enmasse.id"`
 	JWTServiceSecret string `env:"JWT_SERVICE_SECRET,required"`
 	EnmasseURL       string `env:"ENMASSE_INTERNAL_URL"`
-
-	StaffEmail     string        `env:"STAFF_EMAIL,required"`
-	StaffPassword  string        `env:"STAFF_PASSWORD,required"`
-	StaffJWTSecret string        `env:"STAFF_JWT_SECRET,required"`
-	StaffJWTExpiry time.Duration `env:"STAFF_JWT_EXPIRY" envDefault:"8h"`
 
 	CORSOrigins string `env:"CORS_ORIGINS" envDefault:"http://localhost:3000"`
 
@@ -55,10 +49,10 @@ func (c *Config) validate() error {
 	if !c.IsProduction() {
 		return nil
 	}
-	if len(c.JWTAccessSecret) < 32 || len(c.JWTServiceSecret) < 32 || len(c.StaffJWTSecret) < 32 {
+	if len(c.JWTAccessSecret) < 32 || len(c.JWTServiceSecret) < 32 {
 		return fmt.Errorf("config: JWT secrets must be at least 32 characters in production")
 	}
-	if strings.Contains(c.JWTAccessSecret, "change-me") || strings.Contains(c.JWTServiceSecret, "change-me") || strings.Contains(c.StaffJWTSecret, "change-me") {
+	if strings.Contains(c.JWTAccessSecret, "change-me") || strings.Contains(c.JWTServiceSecret, "change-me") {
 		return fmt.Errorf("config: replace example JWT secrets before production")
 	}
 	if strings.TrimSpace(c.EnmasseURL) == "" {

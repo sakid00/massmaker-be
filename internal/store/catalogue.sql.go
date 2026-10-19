@@ -462,22 +462,6 @@ func (q *Queries) InsertMakerPortfolioWork(ctx context.Context, arg InsertMakerP
 	return i, err
 }
 
-const insertSynonym = `-- name: InsertSynonym :exec
-INSERT INTO category_synonyms (category_slug, synonym)
-VALUES ($1, $2)
-ON CONFLICT (synonym) DO NOTHING
-`
-
-type InsertSynonymParams struct {
-	CategorySlug string `json:"category_slug"`
-	Synonym      string `json:"synonym"`
-}
-
-func (q *Queries) InsertSynonym(ctx context.Context, arg InsertSynonymParams) error {
-	_, err := q.db.Exec(ctx, insertSynonym, arg.CategorySlug, arg.Synonym)
-	return err
-}
-
 const listAllCategories = `-- name: ListAllCategories :many
 SELECT slug, label_id, shortcut_order, group_slug, publication_status, source, proposed_by_maker_id
 FROM categories
@@ -574,76 +558,6 @@ func (q *Queries) ListCategoryGroups(ctx context.Context) ([]ListCategoryGroupsR
 	for rows.Next() {
 		var i ListCategoryGroupsRow
 		if err := rows.Scan(&i.Slug, &i.LabelID, &i.ShortcutOrder); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listDraftCategories = `-- name: ListDraftCategories :many
-SELECT slug, label_id, shortcut_order, group_slug, publication_status, source, proposed_by_maker_id
-FROM categories
-WHERE publication_status = 'draft'
-ORDER BY slug
-`
-
-func (q *Queries) ListDraftCategories(ctx context.Context) ([]Category, error) {
-	rows, err := q.db.Query(ctx, listDraftCategories)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []Category{}
-	for rows.Next() {
-		var i Category
-		if err := rows.Scan(
-			&i.Slug,
-			&i.LabelID,
-			&i.ShortcutOrder,
-			&i.GroupSlug,
-			&i.PublicationStatus,
-			&i.Source,
-			&i.ProposedByMakerID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listDraftCategoryGroups = `-- name: ListDraftCategoryGroups :many
-SELECT slug, label_id, shortcut_order, publication_status, source, proposed_by_maker_id, created_at
-FROM category_groups
-WHERE publication_status = 'draft'
-ORDER BY created_at DESC
-`
-
-func (q *Queries) ListDraftCategoryGroups(ctx context.Context) ([]CategoryGroup, error) {
-	rows, err := q.db.Query(ctx, listDraftCategoryGroups)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []CategoryGroup{}
-	for rows.Next() {
-		var i CategoryGroup
-		if err := rows.Scan(
-			&i.Slug,
-			&i.LabelID,
-			&i.ShortcutOrder,
-			&i.PublicationStatus,
-			&i.Source,
-			&i.ProposedByMakerID,
-			&i.CreatedAt,
-		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -1017,38 +931,6 @@ func (q *Queries) ListPublishedRecommendations(ctx context.Context, makerID uuid
 		return nil, err
 	}
 	return items, nil
-}
-
-const setCategoryGroupPublication = `-- name: SetCategoryGroupPublication :exec
-UPDATE category_groups
-SET publication_status = $2
-WHERE slug = $1
-`
-
-type SetCategoryGroupPublicationParams struct {
-	Slug              string            `json:"slug"`
-	PublicationStatus PublicationStatus `json:"publication_status"`
-}
-
-func (q *Queries) SetCategoryGroupPublication(ctx context.Context, arg SetCategoryGroupPublicationParams) error {
-	_, err := q.db.Exec(ctx, setCategoryGroupPublication, arg.Slug, arg.PublicationStatus)
-	return err
-}
-
-const setCategoryPublication = `-- name: SetCategoryPublication :exec
-UPDATE categories
-SET publication_status = $2
-WHERE slug = $1
-`
-
-type SetCategoryPublicationParams struct {
-	Slug              string            `json:"slug"`
-	PublicationStatus PublicationStatus `json:"publication_status"`
-}
-
-func (q *Queries) SetCategoryPublication(ctx context.Context, arg SetCategoryPublicationParams) error {
-	_, err := q.db.Exec(ctx, setCategoryPublication, arg.Slug, arg.PublicationStatus)
-	return err
 }
 
 const updateMakerIdentity = `-- name: UpdateMakerIdentity :exec
