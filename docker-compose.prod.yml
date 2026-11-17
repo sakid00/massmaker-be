@@ -65,6 +65,37 @@ services:
       - app
       - massmaker
 
+  # Daily makers → Google Sheets (profile cluster on the same tab).
+  # Opt-in: --profile pg2sheet. See README.md.
+  pg2sheet:
+    profiles: [pg2sheet]
+    build:
+      context: ./jobs/pg2sheet
+    container_name: pg2sheet
+    restart: unless-stopped
+    environment:
+      TZ: UTC
+      PG_HOST: postgres
+      PG_PORT: "5432"
+      PG_DB: massmaker
+      PG_USER: postgres
+      PG_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      # Required when using --profile pg2sheet (compose still interpolates inactive profiles).
+      SHEET_ID: ${PG2SHEET_SHEET_ID:-}
+      SHEET_TAB: ${PG2SHEET_SHEET_TAB:-makers}
+      GOOGLE_CREDS_FILE: /secrets/creds.json
+    volumes:
+      - ${PG2SHEET_CREDS_FILE:-./secrets/pg2sheet-creds.json}:/secrets/creds.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    networks:
+      - app
+
 volumes:
   postgres_data:
   caddy_data:

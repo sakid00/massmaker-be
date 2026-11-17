@@ -1,0 +1,3 @@
+# min hour day month weekday  command
+# Once per day at 01:00 (container timezone = TZ env var)
+0 1 * * * python /app/pg_to_gsheet.py

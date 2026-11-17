@@ -1,5 +1,6 @@
 .env
 data/
+secrets/
 *.exe
 *.test
 massmaker-be
