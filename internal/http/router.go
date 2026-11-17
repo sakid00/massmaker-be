@@ -41,6 +41,7 @@ func NewRouter(cat *service.Catalogue, events *service.Events, em *enmasse.Clien
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
+			r.With(httprate.LimitByIP(30, time.Minute)).Get("/password-key", id.Proxy)
 			r.With(httprate.LimitByIP(10, 10*time.Minute)).Post("/email/status", id.Proxy)
 			r.With(httprate.LimitByIP(10, 10*time.Minute)).Post("/register/artist", id.Proxy)
 			r.With(httprate.LimitByIP(10, 10*time.Minute)).Post("/register/vendor", id.Proxy)
@@ -48,7 +49,13 @@ func NewRouter(cat *service.Catalogue, events *service.Events, em *enmasse.Clien
 			r.With(httprate.LimitByIP(5, 10*time.Minute)).Post("/claim", id.Proxy)
 			r.With(httprate.LimitByIP(5, 10*time.Minute)).Post("/password/claim", id.Proxy)
 			r.With(httprate.LimitByIP(5, 10*time.Minute)).Post("/password/set", id.Proxy)
+			r.With(httprate.LimitByIP(5, 10*time.Minute)).Post("/password/forgot", id.Proxy)
+			r.With(httprate.LimitByIP(5, 10*time.Minute)).Post("/password/reset", id.Proxy)
+			r.With(httprate.LimitByIP(5, 10*time.Minute)).Post("/otp/resend", id.Proxy)
+			r.With(httprate.LimitByIP(10, 10*time.Minute)).Post("/otp/verify", id.Proxy)
 			r.With(mw.HumanAuth(opts.JWTAccessSecret, opts.JWTIssuer)).Post("/password/change", id.Proxy)
+			r.With(httprate.LimitByIP(5, 10*time.Minute), mw.HumanAuth(opts.JWTAccessSecret, opts.JWTIssuer)).Post("/email/verify/send", id.Proxy)
+			r.With(httprate.LimitByIP(10, 10*time.Minute), mw.HumanAuth(opts.JWTAccessSecret, opts.JWTIssuer)).Post("/email/verify", id.Proxy)
 		})
 
 		r.Get("/categories", pub.Categories)

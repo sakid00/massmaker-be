@@ -24,6 +24,7 @@ var (
 	ErrForbidden         = NewAppError(http.StatusForbidden, "forbidden", "forbidden")
 	ErrBadRequest        = NewAppError(http.StatusBadRequest, "validation", "bad request")
 	ErrProfileIncomplete = NewAppError(http.StatusForbidden, "profile_incomplete", "profile incomplete")
+	ErrEmailUnverified   = NewAppError(http.StatusForbidden, "email_unverified", "email is not verified")
 	ErrUnavailable       = NewAppError(http.StatusServiceUnavailable, "internal", "identity service unavailable")
 	ErrMediaUnavailable  = NewAppError(http.StatusServiceUnavailable, "media_unavailable", "object storage is not configured")
 	ErrConflict          = NewAppError(http.StatusConflict, "conflict", "conflict")

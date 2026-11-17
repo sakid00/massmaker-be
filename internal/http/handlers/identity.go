@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"io"
+	"net"
 	"net/http"
 
 	"github.com/sakid00/massmaker-be/internal/domain"
@@ -30,7 +31,7 @@ func (h *IdentityHandler) Proxy(w http.ResponseWriter, r *http.Request) {
 	if r.URL.RawQuery != "" {
 		path += "?" + r.URL.RawQuery
 	}
-	res, err := h.em.Forward(r.Context(), r.Method, path, body, r.Header.Get("Authorization"))
+	res, err := h.em.Forward(r.Context(), r.Method, path, body, r.Header.Get("Authorization"), clientIP(r))
 	if err != nil {
 		writeError(w, err)
 		return
@@ -38,4 +39,12 @@ func (h *IdentityHandler) Proxy(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", res.ContentType)
 	w.WriteHeader(res.Status)
 	_, _ = w.Write(res.Body)
+}
+
+func clientIP(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
 }

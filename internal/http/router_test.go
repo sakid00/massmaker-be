@@ -89,6 +89,43 @@ func TestMeOrdersRequiresAuth(t *testing.T) {
 	}
 }
 
+func TestOTPRoutesUnavailableWithoutEnmasse(t *testing.T) {
+	t.Parallel()
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{})
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/v1/auth/password-key", nil))
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("password-key: got %d", rec.Code)
+	}
+	for _, path := range []string{
+		"/v1/auth/otp/resend",
+		"/v1/auth/otp/verify",
+		"/v1/auth/password/forgot",
+		"/v1/auth/password/reset",
+	} {
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, path, nil))
+		if rec.Code != http.StatusServiceUnavailable {
+			t.Fatalf("%s: got %d", path, rec.Code)
+		}
+	}
+}
+
+func TestEmailVerifyRequiresAuth(t *testing.T) {
+	t.Parallel()
+	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{JWTAccessSecret: "x", JWTIssuer: "https://api.enmasse.id"})
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/v1/auth/email/verify/send", nil))
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("verify send: got %d", rec.Code)
+	}
+	rec = httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/v1/auth/email/verify", nil))
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("verify: got %d", rec.Code)
+	}
+}
+
 func TestConsentsUnavailableWithoutService(t *testing.T) {
 	t.Parallel()
 	h := NewRouter(nil, nil, nil, nil, nil, nil, RouterOptions{})

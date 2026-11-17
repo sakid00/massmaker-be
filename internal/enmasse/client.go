@@ -22,8 +22,13 @@ type Client struct {
 }
 
 type ProfileStatus struct {
-	Complete bool     `json:"complete"`
-	Missing  []string `json:"missing"`
+	Complete      bool     `json:"complete"`
+	Missing       []string `json:"missing"`
+	EmailVerified *bool    `json:"emailVerified"`
+}
+
+func (s ProfileStatus) EmailIsVerified() bool {
+	return s.EmailVerified == nil || *s.EmailVerified
 }
 
 type MeProfile struct {
@@ -102,7 +107,7 @@ type ForwardResult struct {
 	ContentType string
 }
 
-func (c *Client) Forward(ctx context.Context, method, path string, body []byte, authorization string) (*ForwardResult, error) {
+func (c *Client) Forward(ctx context.Context, method, path string, body []byte, authorization, clientIP string) (*ForwardResult, error) {
 	if c.base == "" {
 		return nil, domain.ErrUnavailable
 	}
@@ -116,6 +121,10 @@ func (c *Client) Forward(ctx context.Context, method, path string, body []byte, 
 	}
 	if authorization != "" {
 		req.Header.Set("Authorization", authorization)
+	}
+	if clientIP != "" {
+		req.Header.Set("X-Forwarded-For", clientIP)
+		req.Header.Set("X-Real-IP", clientIP)
 	}
 	res, err := c.slowHTTP.Do(req)
 	if err != nil {
@@ -171,7 +180,7 @@ func (c *Client) ProfileStatus(ctx context.Context, userID string) (ProfileStatu
 }
 
 func (c *Client) MeProfile(ctx context.Context, authorization string) (*MeProfile, error) {
-	res, err := c.Forward(ctx, http.MethodGet, "/v1/me/profile", nil, authorization)
+	res, err := c.Forward(ctx, http.MethodGet, "/v1/me/profile", nil, authorization, "")
 	if err != nil {
 		return nil, err
 	}

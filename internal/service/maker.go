@@ -16,15 +16,15 @@ import (
 )
 
 const (
-	missingCategory   = "category"
-	missingPriceRange = "price_range"
-	missingHours      = "hours"
-	missingMOQ        = "moq"
-	missingLeadTime   = "lead_time"
-	maxPortfolioWorks      = 3
-	maxPortfolioImages     = 5
-	maxPortfolioTitleLen   = 80
-	maxPortfolioDescLen    = 500
+	missingCategory      = "category"
+	missingPriceRange    = "price_range"
+	missingHours         = "hours"
+	missingMOQ           = "moq"
+	missingLeadTime      = "lead_time"
+	maxPortfolioWorks    = 3
+	maxPortfolioImages   = 5
+	maxPortfolioTitleLen = 80
+	maxPortfolioDescLen  = 500
 )
 
 type MakerSelf struct {
@@ -140,6 +140,15 @@ func (s *MakerSelf) Patch(ctx context.Context, authorization, userID string, in 
 	profile, err := s.requireVendor(ctx, authorization)
 	if err != nil {
 		return nil, err
+	}
+	if s.em != nil {
+		st, err := s.em.ProfileStatus(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		if !st.EmailIsVerified() {
+			return nil, domain.ErrEmailUnverified
+		}
 	}
 	maker, err := s.ensureMaker(ctx, profile, userID)
 	if err != nil {
